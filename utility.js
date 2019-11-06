@@ -18,6 +18,24 @@ const validateState = async (state, country) => {
   }
 };
 
+const VALID_ADDRESS = {
+  name: 'Nadim',
+  street: '1313 Mockingbird Lane',
+  city: 'Mumbai',
+  state: 'MH',
+  country: 'IND'
+};
+
+const INVALID_ADDRESS = {
+  name: 'Devon',
+  street: '711 Duane Road',
+  city: 'Birmingham',
+  state: 'ZA',
+  country: 'USA'
+};
+
 module.exports = {
   validateState,
+  VALID_ADDRESS,
+  INVALID_ADDRESS
 };
