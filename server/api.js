@@ -65,8 +65,9 @@ api.put('/:id', async (req, res) => {
 
     if (!record) return res.status(500).json('Record not found.');
 
-    const state = record.state || req.body.state;
-    const country = record.country || req.body.country;
+    const state = req.body.state || record.state;
+    const country = req.body.country || record.country;
+
     const isValid = state && country ? await validateState(state, country) : true;
     if (!isValid) return res.status(422).json('Invalid state and address combination.')
 
