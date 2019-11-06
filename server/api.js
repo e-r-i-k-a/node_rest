@@ -8,10 +8,18 @@ api.get('/', async (req, res) => {
     let query = {};
 
     if (req.query) {
+      const validSchemaFields = Object.keys(Address.schema.paths);
+
       for (key in req.query) {
         value = String(req.query[key]).toUpperCase();
         key = String(key.toLowerCase());
-        query[key] = value;
+
+        if (validSchemaFields.indexOf(key) === -1) {
+          return res.status(422).json('Invalid query parameter.')
+        } else {
+          query[key] = value;
+        }
+
       }
     }
 
@@ -59,6 +67,8 @@ api.post('/', async (req, res) => {
 api.put('/:id', async (req, res) => {
   try {
     const _id = req.params.id;
+    if (!_id) return res.status(400).json('Null ID.');
+
     const record = await Address.findById(_id, (e) => {
       if (e) console.error(e.message);
     });
@@ -69,7 +79,7 @@ api.put('/:id', async (req, res) => {
     const country = req.body.country || record.country;
 
     const isValid = state && country ? await validateState(state, country) : true;
-    if (!isValid) return res.status(422).json('Invalid state and address combination.')
+    if (!isValid) return res.status(422).json('Invalid state and country combination.')
 
     await Address.updateOne(record, {$set:{...req.body}}, (e, updated) => {
       if (e) {
