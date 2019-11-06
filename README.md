@@ -5,4 +5,4 @@
 [2] clone or fork repo onto your local machine<br/>
 [3] cd into project directory, `npm i`<br/>
 [4] to start, run `npm start` and hit api routes at `localhost:9000` defined in `server/api`<br/>
-[5] to test, run `npm test` see console output<br/>
+[5] to test the entire suite, run `npm test`, or `mocha -g <describe_block_text>` to run a single test<br/>
