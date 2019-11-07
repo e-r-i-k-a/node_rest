@@ -1,15 +1,15 @@
 const api = require('express').Router();
-const {Address} = require('../db');
 const {log, validateState} = require('../utility');
+const {Address} = require('../db');
+const validSchemaFields = Object.keys(Address.schema.paths);
 
 //GET:
 api.get('/', async (req, res) => {
+  //return all records on empty route (/), or filter by a valid query (e.g. /?country=IND)
   try {
     let query = {};
 
     if (req.query) {
-      const validSchemaFields = Object.keys(Address.schema.paths);
-
       for (key in req.query) {
         value = String(req.query[key]).toUpperCase();
         key = String(key.toLowerCase());
@@ -33,11 +33,17 @@ api.get('/', async (req, res) => {
 });
 
 api.get('/:key/:value', async (req, res) => {
+  //filter records by valid key:value pair (e.g. /state/IND)
   try {
     const key = String(req.params.key).toLowerCase();
     const value = String(req.params.value).toUpperCase();
-    const addresses = await Address.find({[key]: [value]});
-    res.status(200).json(addresses);
+
+    if (validSchemaFields.indexOf(key) === -1) {
+      return res.status(400).json('Invalid route.')
+    } else {
+      const addresses = await Address.find({[key]: [value]});
+      res.status(200).json(addresses);
+    }
 
   } catch(e) {
     log(e.message);
