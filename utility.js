@@ -1,4 +1,16 @@
 const axios = require('axios');
+const fs = require('fs');
+const util = require('util');
+const moment = require('moment');
+
+const stream = fs.createWriteStream(`${__dirname}/log.txt`, {flags: 'a'});
+const log = (d) => {
+  const now = new Date();
+  const date = moment(now).format('MM/DD/YYYY');
+  const time = moment(now).format('hh:mm a');
+  stream.write(util.format(`${date} @ ${time}: ${d}`) + '\n');
+  console.log(util.format(d));
+};
 
 const validateState = async (state, country) => {
   if (!state || !country) return false;
@@ -35,6 +47,8 @@ const TEST_INVALID_ADDRESS = {
 };
 
 module.exports = {
+  log,
+  stream,
   validateState,
   TEST_VALID_ADDRESS,
   TEST_INVALID_ADDRESS
