@@ -5,5 +5,5 @@
 [2] start mongodb `sudo systemctl start mongod`
 [3] clone or fork repo onto your local machine<br/>
 [4] cd into project directory, `npm i`<br/>
-[5] to start, run `npm start` and hit api routes at `localhost:9000` defined in `server/api`<br/>
+[5] to start, run `npm start` and hit api routes at `localhost:9000/api` defined in `server/api`<br/>
 [6] to test the entire suite, run `npm test`, or `mocha -g <describe_block_text>` to run a single test<br/>

@@ -1,72 +1,52 @@
 const api = require('express').Router();
-const {log, validateState} = require('../utility');
-const {Address} = require('../db');
-const validSchemaFields = Object.keys(Address.schema.paths);
+const { getError, log, validateQuery, validateState } = require('../utility');
+const { Address } = require('../db/schemas');
+
 
 //GET:
 api.get('/', async (req, res) => {
   //return all records on empty route (/), or filter by a valid query (e.g. /?country=IND)
+  let query = {};
   try {
-    let query = {};
-
-    if (req.query) {
-      for (key in req.query) {
-        value = String(req.query[key]).toUpperCase();
-        key = String(key.toLowerCase());
-
-        if (validSchemaFields.indexOf(key) === -1) {
-          return res.status(422).json('Invalid query parameter.')
-        } else {
-          query[key] = value;
-        }
-
-      }
-    }
+    if (req.query) query = validateQuery(Address, req.query);
 
     const addresses = await Address.find(query);
-    res.status(200).json(addresses);
-
-  } catch(e) {
-    log(e.message);
-    res.status(500).json('Read failed.');
+    return res.status(200).json(addresses);
+  } catch (e) {
+    const { message, status } = getError(e);
+    return res.status(status).json(message);
   }
 });
 
 api.get('/:key/:value', async (req, res) => {
-  //filter records by valid key:value pair (e.g. /state/IND)
+  //filter records by valid key:value pair (e.g. /country/IND)
+  const { key, value } = req.params;
   try {
-    const key = String(req.params.key).toLowerCase();
-    const value = String(req.params.value).toUpperCase();
-
-    if (validSchemaFields.indexOf(key) === -1) {
-      return res.status(400).json('Invalid route.')
-    } else {
-      const addresses = await Address.find({[key]: [value]});
-      res.status(200).json(addresses);
-    }
-
-  } catch(e) {
-    log(e.message);
-    res.status(500).json('Read failed.');
+    const query = validateQuery(Address, { [key]: [value] });
+    const addresses = await Address.find({ ...query });
+    return res.status(200).json(addresses);
+  } catch (e) {
+    const { message, status } = getError(e);
+    return res.status(status).json(message);
   }
 });
 
 //POST
 api.post('/', async (req, res) => {
   try {
-    const {state, country} = req.body;
-    const isValid = state && country ? await validateState(state, country) : true;
+    const { state, country } = req.body;
+    const isValid =
+      state && country ? await validateState(state, country) : true;
 
-    if (!isValid) return res.status(422).json('Invalid state and address combination.')
+    if (!isValid)
+      return res.status(422).json('Invalid state and address combination.');
 
-    const address = await new Address({...req.body}).save();
-    res.status(201).json(address['_id']);
-
-  } catch(e) {
-    log(e.message);
-    res.status(500).json('Post failed.');
+    const model = await new Address({ ...req.body }).save();
+    return res.status(201).json(model['_id']);
+  } catch (e) {
+    const { message, status } = getError(e);
+    return res.status(status).json(message);
   }
-
 });
 
 //UPDATE
@@ -84,21 +64,22 @@ api.put('/:id', async (req, res) => {
     const state = req.body.state || record.state;
     const country = req.body.country || record.country;
 
-    const isValid = state && country ? await validateState(state, country) : true;
-    if (!isValid) return res.status(422).json('Invalid state and country combination.')
+    const isValid =
+      state && country ? await validateState(state, country) : true;
+    if (!isValid)
+      return res.status(422).json('Invalid state and country combination.');
 
-    await Address.updateOne(record, {$set:{...req.body}}, (e, updated) => {
+    await Address.updateOne(record, { $set: { ...req.body } }, (e, updated) => {
       if (e) {
-        log(e.message);
-        return res.status(500).json('Update failed.');
+        const { message, status } = getError(e);
+        return res.status(status).json(message);
       } else {
         return res.status(200).json(updated.n);
       }
     });
-
-  } catch(e) {
-    log(e.message);
-    res.status(500).json('Update failed.');
+  } catch (e) {
+    const { message, status } = getError(e);
+    return res.status(status).json(message);
   }
 });
 
@@ -110,20 +91,19 @@ api.delete('/:id', async (req, res) => {
       if (e) log(e.message);
     });
 
-    if (!record) return res.status(500).json('Record not found.')
+    if (!record) return res.status(404).json('Record not found.');
 
     await Address.deleteOne(record, (e) => {
       if (e) {
-        log(e.message);
-        return res.status(500).json('Delete failed.');
+        const { message, status } = getError(e);
+        return res.status(status).json(message);
       } else {
         return res.sendStatus(204);
       }
     });
-
-  } catch(e) {
-    log(e.message);
-    res.status(500).json('Delete failed.');
+  } catch (e) {
+    const { message, status } = getError(e);
+    return res.status(status).json(message);
   }
 });
 

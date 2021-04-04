@@ -3,7 +3,7 @@ const fs = require('fs');
 const util = require('util');
 const moment = require('moment');
 
-const stream = fs.createWriteStream(`${__dirname}/log.txt`, {flags: 'a'});
+const stream = fs.createWriteStream(`${__dirname}/log.txt`, { flags: 'a' });
 const log = (d) => {
   const now = new Date();
   const date = moment(now).format('MM/DD/YYYY');
@@ -12,44 +12,55 @@ const log = (d) => {
   console.log(util.format(d));
 };
 
+const getError = (error = {}) => {
+  const status = error.name === 'ValidationError' ? 400 : 500;
+  const message = error.message || 'Request failed.';
+  log(message);
+  return { message, status };
+};
+
+const validateQuery = (model, query) => {
+  const validated = {};
+  const validFields = Object.keys(model.schema.paths).filter(
+    (k) => k !== '_id' && k !== '__v'
+  );
+
+  for (field in query) {
+    const key = String(field.toLowerCase());
+    const value = String(query[field]).toUpperCase();
+    if (!validFields.includes(field)) {
+      throw {
+        name: 'ValidationError',
+        message: `Validation failed: '${field}' is not a valid field.`,
+      };
+    } else {
+      validated[key] = value;
+    }
+  }
+  return validated;
+};
+
 const validateState = async (state, country) => {
   if (!state || !country) return false;
   const url = `http://www.groupkt.com/state/get/${country}/${state}`;
 
   try {
     const response = await axios.get(url);
-    const {data} = response;
-    const {RestResponse} = data;
-    const {result} = RestResponse;
+    const { data } = response;
+    const { RestResponse } = data;
+    const { result } = RestResponse;
 
-    return result && (result.country === country) && (result.abbr === state);
-
-  } catch(e) {
+    return result && result.country === country && result.abbr === state;
+  } catch (e) {
     console.error(e.message);
     return false;
   }
 };
 
-const TEST_VALID_ADDRESS = {
-  name: 'Nadim',
-  street: '1313 Mockingbird Lane',
-  city: 'Mumbai',
-  state: 'MH',
-  country: 'IND'
-};
-
-const TEST_INVALID_ADDRESS = {
-  name: 'Devon',
-  street: '711 Duane Road',
-  city: 'Birmingham',
-  state: 'ZA',
-  country: 'USA'
-};
-
 module.exports = {
+  getError,
   log,
   stream,
+  validateQuery,
   validateState,
-  TEST_VALID_ADDRESS,
-  TEST_INVALID_ADDRESS
 };
