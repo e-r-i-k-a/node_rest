@@ -40,20 +40,25 @@ const validateQuery = (model, query) => {
   return validated;
 };
 
-const validateState = async (state, country) => {
+const validateState = async ({ country, state }) => {
   if (!state || !country) return false;
   const url = `http://www.groupkt.com/state/get/${country}/${state}`;
+  const error = {
+    name: 'ValidationError',
+    message: 'Invalid state and country combination.',
+  };
 
   try {
     const response = await axios.get(url);
-    const { data } = response;
-    const { RestResponse } = data;
-    const { result } = RestResponse;
+    const { data: { RestResponse: { result } } } = response;
 
-    return result && result.country === country && result.abbr === state;
+    if (result && result.country === country && result.abbr === state) {
+      return true;
+    } else {
+      throw error;
+    }
   } catch (e) {
-    console.error(e.message);
-    return false;
+    throw error;
   }
 };
 

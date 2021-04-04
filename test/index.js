@@ -131,7 +131,7 @@ describe('POST/api', () => {
     await request(app)
       .get('/api')
       .expect((res) => res.body.length === 2);
-    await request(app).post('/api').send(TEST_INVALID_ADDRESS).expect(422);
+    await request(app).post('/api').send(TEST_INVALID_ADDRESS).expect(400);
     await request(app)
       .get('/api')
       .expect((res) => res.body.length === 2);
@@ -154,7 +154,7 @@ describe('POST/api', () => {
     await request(app)
       .post('/api')
       .send(TEST_INVALID_ADDRESS)
-      .expect(422)
+      .expect(400)
       .expect((res) =>
         expect(res.error === 'Invalid state and country combination.')
       );
@@ -185,7 +185,7 @@ describe('PUT/api', () => {
     await request(app)
       .put(`/api/${id}`)
       .send({ state: 'AZ' })
-      .expect(422)
+      .expect(400)
       .expect((res) =>
         expect(res.error === 'Invalid state and country combination.')
       );

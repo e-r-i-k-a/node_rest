@@ -2,7 +2,6 @@ const api = require('express').Router();
 const { getError, log, validateQuery, validateState } = require('../utility');
 const { Address } = require('../db/schemas');
 
-
 //GET:
 api.get('/', async (req, res) => {
   //return all records on empty route (/), or filter by a valid query (e.g. /?country=IND)
@@ -36,7 +35,7 @@ api.post('/', async (req, res) => {
   try {
     const { state, country } = req.body;
     const isValid =
-      state && country ? await validateState(state, country) : true;
+      state && country ? await validateState({ country, state }) : true;
 
     if (!isValid)
       return res.status(422).json('Invalid state and address combination.');
@@ -65,7 +64,7 @@ api.put('/:id', async (req, res) => {
     const country = req.body.country || record.country;
 
     const isValid =
-      state && country ? await validateState(state, country) : true;
+      state && country ? await validateState({ country, state }) : true;
     if (!isValid)
       return res.status(422).json('Invalid state and country combination.');
 
